@@ -1,0 +1,11 @@
+[package]
+name = "bulletml"
+version = "0.1.0"
+authors = ["Ben Boeckel <mathstuf@gmail.com>"]
+readme = "README>md"
+license = "BSD-2-Clause"
+repository = "https://github.com/mathstuf/rust-bulletml"
+homepage = "https://github.com/mathstuf/rust-bulletml"
+
+[dependencies]
+error-chain = "~0.9"
