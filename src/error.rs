@@ -3,6 +3,10 @@
 
 error_chain! {
     errors {
+        NoSuchEntity(name: String) {
+            display("could not find entity `{}`", name)
+        }
+
         ExpressionParseFailure {
             display("expression parse failure")
         }
