@@ -1,6 +1,10 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
+extern crate serde;
+use self::serde::de::{Deserialize, Deserializer, Unexpected};
+use self::serde::de::Error as SerdeError;
+
 use error::*;
 
 mod ast;
@@ -23,6 +27,7 @@ pub trait ExpressionContext {
     fn rank(&self) -> Value;
 }
 
+#[derive(Debug, Clone)]
 /// An expression which may be evaluated to compute a value.
 pub struct Expression {
     expr: Expr,
@@ -70,5 +75,17 @@ impl Expression {
                 }
             },
         }
+    }
+}
+
+impl Deserialize for Expression {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+        where D: Deserializer,
+    {
+        let expr_str = String::deserialize(deserializer)?;
+
+        Self::parse(&expr_str)
+            .map_err(|_| D::Error::invalid_value(Unexpected::Other("???"),
+                                                 &"a BulletML expression"))
     }
 }
