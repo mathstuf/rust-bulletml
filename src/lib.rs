@@ -14,4 +14,5 @@ extern crate error_chain;
 extern crate serde_derive;
 
 mod data;
+mod parse;
 mod error;

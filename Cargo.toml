@@ -11,6 +11,11 @@ build = "build.rs"
 [build-dependencies]
 peg = "~0.5"
 
+[dev-dependencies]
+itertools = "~0.5"
+serde-xml-rs = "~0.1"
+walkdir = "^1.0"
+
 [dependencies]
 error-chain = "~0.9"
 serde = "~0.9"
