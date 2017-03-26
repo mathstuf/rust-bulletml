@@ -2,4 +2,9 @@
 // See accompanying file LICENSE for details.
 
 error_chain! {
+    errors {
+        ExpressionParseFailure {
+            display("expression parse failure")
+        }
+    }
 }
