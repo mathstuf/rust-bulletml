@@ -6,5 +6,9 @@ error_chain! {
         ExpressionParseFailure {
             display("expression parse failure")
         }
+
+        UndefinedVariable(name: String) {
+            display("undefined variable `{}`", name)
+        }
     }
 }
