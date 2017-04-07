@@ -262,6 +262,12 @@ pub struct Term {
     pub value: Expression,
 }
 
+impl Term {
+    pub fn eval(&self, ctx: &ExpressionContext) -> Result<Value> {
+        self.value.eval(ctx)
+    }
+}
+
 #[derive(Debug, Clone)]
 /// A count of how many times to repeat an action.
 pub struct Times {
