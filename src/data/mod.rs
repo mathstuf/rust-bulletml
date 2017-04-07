@@ -47,7 +47,7 @@ pub enum Step {
 /// An action that may be performed for a bullet.
 pub struct Action {
     /// The name of the action.
-    pub label: String,
+    pub label: Option<String>,
     /// The steps which make up the action.
     pub steps: Vec<Step>,
 }
@@ -55,7 +55,7 @@ pub struct Action {
 /// A bullet.
 pub struct Bullet {
     /// The label for the bullet.
-    pub label: String,
+    pub label: Option<String>,
     /// The direction to fire the bullet.
     pub direction: Option<Direction>,
     /// The initial speed of the bullet.
@@ -196,7 +196,7 @@ impl<T> EntityRef<T> {
 /// Create a new bullet.
 pub struct Fire {
     /// The name of the fire action.
-    pub label: String,
+    pub label: Option<String>,
     /// The direction to fire in.
     pub direction: Option<Direction>,
     /// The initial speed of the bullet.
