@@ -79,6 +79,16 @@ pub enum Orientation {
     Horizontal,
 }
 
+impl Orientation {
+    pub fn up(&self, dir: f32) -> f32 {
+        if let &Orientation::Horizontal = self {
+            dir - 90.
+        } else {
+            dir
+        }
+    }
+}
+
 impl Default for Orientation {
     fn default() -> Self {
         Orientation::None
