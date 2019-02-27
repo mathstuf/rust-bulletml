@@ -1,12 +1,20 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use error::*;
+use crates::failure::{Fallible, ResultExt};
 
 mod ast;
 mod grammar;
 
 use self::ast::{Expr, ExprVar};
+
+#[derive(Debug, Fail)]
+pub enum ExpressionError {
+    #[fail(display = "failed to parse expression")]
+    ParseFailure,
+    #[fail(display = "undefined variable `{}`", _0)]
+    UndefinedVariable(String),
+}
 
 /// The value of an expression.
 pub type Value = f32;
@@ -31,22 +39,22 @@ pub struct Expression {
 
 impl Expression {
     /// Parse an expression from a string.
-    pub fn parse<E>(expr: E) -> Result<Self>
+    pub fn parse<E>(expr: E) -> Fallible<Self>
         where E: AsRef<str>,
     {
-        grammar::expression(expr.as_ref())
+        Ok(grammar::expression(expr.as_ref())
             .map(|expr| Expression {
                 expr: expr.constant_fold(),
             })
-            .chain_err(|| ErrorKind::ExpressionParseFailure)
+            .context(ExpressionError::ParseFailure)?)
     }
 
     /// Evaluate the expression with a given context.
-    pub fn eval(&self, ctx: &ExpressionContext) -> Result<Value> {
+    pub fn eval(&self, ctx: &ExpressionContext) -> Fallible<Value> {
         Self::eval_expr(&self.expr, ctx)
     }
 
-    fn eval_expr(expr: &Expr, ctx: &ExpressionContext) -> Result<Value> {
+    fn eval_expr(expr: &Expr, ctx: &ExpressionContext) -> Fallible<Value> {
         match *expr {
             Expr::Unary { op: ref o, expr: ref e } => {
                 Self::eval_expr(e.as_ref(), ctx)
@@ -66,7 +74,7 @@ impl Expression {
                     ExprVar::Rand => Ok(ctx.rand()),
                     ExprVar::Named(ref n) => {
                         ctx.get(&n)
-                            .ok_or_else(|| ErrorKind::UndefinedVariable(n.clone()).into())
+                            .ok_or_else(|| ExpressionError::UndefinedVariable(n.clone()).into())
                     },
                 }
             },

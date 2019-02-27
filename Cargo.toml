@@ -12,4 +12,4 @@ build = "build.rs"
 peg = "~0.5"
 
 [dependencies]
-error-chain = "~0.10"
+failure = "~0.1"

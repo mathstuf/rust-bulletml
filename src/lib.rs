@@ -8,7 +8,10 @@
 #![warn(missing_docs)]
 
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
+
+mod crates {
+    pub extern crate failure;
+}
 
 mod data;
-mod error;

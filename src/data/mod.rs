@@ -5,17 +5,23 @@
 //!
 //! These are the data structures used to represent a BulletML file.
 
+use crates::failure::Fallible;
+
 use std::collections::hash_map::HashMap;
 use std::ops::{Add, Mul};
 use std::rc::Rc;
 
-use error::*;
+#[derive(Debug, Fail)]
+pub enum EntityError {
+    #[fail(display = "could not find entity `{}`", _0)]
+    CannotFind(String),
+}
 
 mod expression;
 pub use self::expression::{Expression, ExpressionContext, Value};
 
 pub trait Acceleration {
-    fn amount(&self, ctx: &ExpressionContext) -> Result<f32>;
+    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32>;
     fn modify(&self, value: f32, current: f32, duration: f32) -> f32;
 }
 
@@ -208,12 +214,12 @@ pub enum EntityRef<T> {
 
 impl<T> EntityRef<T> {
     /// Get a reference to the entity.
-    pub fn entity<'a>(&'a self, lookup: &'a HashMap<String, Rc<T>>) -> Result<&'a T> {
+    pub fn entity<'a>(&'a self, lookup: &'a HashMap<String, Rc<T>>) -> Result<&'a T, EntityError> {
         match *self {
             EntityRef::Ref(ref label) => {
                 lookup.get(label)
                     .map(AsRef::as_ref)
-                    .ok_or_else(|| ErrorKind::NoSuchEntity(label.to_string()).into())
+                    .ok_or_else(|| EntityError::CannotFind(label.to_string()).into())
             },
             EntityRef::Real(ref rc) => Ok(&rc),
         }
@@ -243,7 +249,7 @@ pub struct Horizontal {
 }
 
 impl Acceleration for Horizontal {
-    fn amount(&self, ctx: &ExpressionContext) -> Result<f32> {
+    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32> {
         self.change.eval(ctx)
     }
 
@@ -278,7 +284,7 @@ pub struct Term {
 }
 
 impl Term {
-    pub fn eval(&self, ctx: &ExpressionContext) -> Result<Value> {
+    pub fn eval(&self, ctx: &ExpressionContext) -> Fallible<Value> {
         self.value.eval(ctx)
     }
 }
@@ -304,7 +310,7 @@ pub struct Vertical {
 }
 
 impl Acceleration for Vertical {
-    fn amount(&self, ctx: &ExpressionContext) -> Result<f32> {
+    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32> {
         self.change.eval(ctx)
     }
 
