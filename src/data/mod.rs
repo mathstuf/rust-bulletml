@@ -7,7 +7,6 @@
 
 use crates::failure::Fallible;
 
-use std::collections::hash_map::HashMap;
 use std::ops::{Add, Mul};
 use std::rc::Rc;
 
@@ -212,16 +211,21 @@ pub enum EntityRef<T> {
     Real(Rc<T>),
 }
 
+/// A trait to look up entities.
+pub trait EntityLookup<T> {
+    /// Find an entity by name.
+    fn find(&self, name: &str) -> Option<Rc<T>>;
+}
+
 impl<T> EntityRef<T> {
     /// Get a reference to the entity.
-    pub fn entity<'a>(&'a self, lookup: &'a HashMap<String, Rc<T>>) -> Result<&'a T, EntityError> {
+    pub fn entity(&self, lookup: &EntityLookup<T>) -> Result<Rc<T>, EntityError> {
         match *self {
             EntityRef::Ref(ref label) => {
-                lookup.get(label)
-                    .map(AsRef::as_ref)
+                lookup.find(&label)
                     .ok_or_else(|| EntityError::CannotFind(label.clone()).into())
             },
-            EntityRef::Real(ref rc) => Ok(&rc),
+            EntityRef::Real(ref rc) => Ok(rc.clone()),
         }
     }
 }
