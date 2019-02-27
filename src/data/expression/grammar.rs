@@ -144,18 +144,18 @@ mod test {
     #[test]
     fn test_parse_variable() {
         let res = grammar::expression("$var").unwrap();
-        check_variable(res, ExprVar::Named("var".to_string()));
+        check_variable(res, ExprVar::Named("var".into()));
     }
 
     #[test]
     fn test_parse_rank_trailing() {
         let res = grammar::expression("$rankvar").unwrap();
-        check_variable(res, ExprVar::Named("rankvar".to_string()));
+        check_variable(res, ExprVar::Named("rankvar".into()));
     }
 
     #[test]
     fn test_parse_rand_trailing() {
         let res = grammar::expression("$randvar").unwrap();
-        check_variable(res, ExprVar::Named("randvar".to_string()));
+        check_variable(res, ExprVar::Named("randvar".into()));
     }
 }

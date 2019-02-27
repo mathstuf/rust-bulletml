@@ -58,7 +58,7 @@ varname -> ExprVar
         } else if n == "rand" {
             ExprVar::Rand
         } else {
-            ExprVar::Named(n.to_string())
+            ExprVar::Named(n.into())
         }
     }
 

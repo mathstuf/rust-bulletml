@@ -219,7 +219,7 @@ impl<T> EntityRef<T> {
             EntityRef::Ref(ref label) => {
                 lookup.get(label)
                     .map(AsRef::as_ref)
-                    .ok_or_else(|| EntityError::CannotFind(label.to_string()).into())
+                    .ok_or_else(|| EntityError::CannotFind(label.clone()).into())
             },
             EntityRef::Real(ref rc) => Ok(&rc),
         }
