@@ -5,10 +5,10 @@
 //!
 //! These are the data structures used to represent a BulletML file.
 
-use crates::failure::Fallible;
-
 use std::ops::{Add, Mul};
 use std::rc::Rc;
+
+use crates::failure::Fallible;
 
 /// An error related to entity searches.
 #[derive(Debug, Fail)]
