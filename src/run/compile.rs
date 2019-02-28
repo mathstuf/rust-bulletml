@@ -43,7 +43,7 @@ impl Step {
             data::Step::ChangeDirection(ref cd) => Ok(Step::ChangeDirection(cd.clone())),
             data::Step::Accel(ref accel) => Ok(Step::Accel(accel.clone())),
             data::Step::Wait(ref wait) => Ok(Step::Wait(wait.clone())),
-            data::Step::Vanish(ref vanish) => Ok(Step::Vanish(vanish.clone())),
+            data::Step::Vanish(vanish) => Ok(Step::Vanish(vanish)),
             data::Step::Repeat(ref repeat) => Repeat::new(lib, data_lib, repeat).map(Step::Repeat),
             data::Step::Fire(ref fire) => {
                 let entity = fire.entity(data_lib)?;
@@ -249,8 +249,8 @@ impl BulletML {
 
         Ok(BulletML {
             orientation: bulletml.orientation,
-            actions: actions,
-            library: library,
+            actions,
+            library,
         })
     }
 }

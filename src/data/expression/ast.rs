@@ -16,8 +16,8 @@ pub enum UnaryOp {
 }
 
 impl UnaryOp {
-    pub fn eval(&self, v: Value) -> Value {
-        match *self {
+    pub fn eval(self, v: Value) -> Value {
+        match self {
             UnaryOp::Negate => -v,
         }
     }
@@ -33,8 +33,8 @@ pub enum BinaryOp {
 }
 
 impl BinaryOp {
-    pub fn eval(&self, l: Value, r: Value) -> Value {
-        match *self {
+    pub fn eval(self, l: Value, r: Value) -> Value {
+        match self {
             BinaryOp::Add => l + r,
             BinaryOp::Sub => l - r,
             BinaryOp::Mul => l * r,
@@ -62,7 +62,7 @@ pub enum Expr {
 impl Expr {
     pub fn binary(op: BinaryOp, lhs: Expr, rhs: Expr) -> Self {
         Expr::Binary {
-            op: op,
+            op,
             lhs: Box::new(lhs),
             rhs: Box::new(rhs),
         }
@@ -70,7 +70,7 @@ impl Expr {
 
     pub fn unary(op: UnaryOp, expr: Expr) -> Self {
         Expr::Unary {
-            op: op,
+            op,
             expr: Box::new(expr),
         }
     }

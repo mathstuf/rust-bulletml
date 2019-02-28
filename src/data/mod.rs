@@ -88,8 +88,8 @@ pub enum Orientation {
 
 impl Orientation {
     /// The "up" direction for the given orientation.
-    pub fn up(&self, dir: f32) -> f32 {
-        if let &Orientation::Horizontal = self {
+    pub fn up(self, dir: f32) -> f32 {
+        if let Orientation::Horizontal = self {
             dir - 90.
         } else {
             dir
@@ -142,12 +142,12 @@ impl Default for Change {
 
 impl Change {
     /// Change a value.
-    pub fn modify<T>(&self, value: T, current: T, duration: T) -> T
+    pub fn modify<T>(self, value: T, current: T, duration: T) -> T
     where
         T: Add<Output = T>,
         T: Mul<Output = T>,
     {
-        match *self {
+        match self {
             Change::Absolute => value,
             Change::Relative => value + current,
             Change::Sequence => value * duration + current,
@@ -223,7 +223,7 @@ impl<T> EntityRef<T> {
             EntityRef::Ref(ref label) => {
                 lookup
                     .find(&label)
-                    .ok_or_else(|| EntityError::CannotFind(label.clone()).into())
+                    .ok_or_else(|| EntityError::CannotFind(label.clone()))
             },
             EntityRef::Real(ref rc) => Ok(rc.clone()),
         }

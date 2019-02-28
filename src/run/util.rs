@@ -32,10 +32,10 @@ where
 {
     let entry = map.entry(name.into());
     if let Entry::Occupied(ref o) = entry {
-        EntityError::Duplicate(o.key().clone(), kind);
+        Err(EntityError::Duplicate(o.key().clone(), kind))?;
     }
 
-    entry.or_insert(f());
+    entry.or_insert_with(f);
 
     Ok(())
 }
