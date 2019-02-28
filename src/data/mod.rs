@@ -10,8 +10,10 @@ use crates::failure::Fallible;
 use std::ops::{Add, Mul};
 use std::rc::Rc;
 
+/// An error related to entity searches.
 #[derive(Debug, Fail)]
 pub enum EntityError {
+    /// An entity with the given name could not be found.
     #[fail(display = "could not find entity `{}`", _0)]
     CannotFind(String),
 }
@@ -90,6 +92,7 @@ pub enum Orientation {
 }
 
 impl Orientation {
+    /// The "up" direction for the given orientation.
     pub fn up(&self, dir: f32) -> f32 {
         if let &Orientation::Horizontal = self {
             dir - 90.
@@ -288,6 +291,7 @@ pub struct Term {
 }
 
 impl Term {
+    /// Evaluate the term in the given context.
     pub fn eval(&self, ctx: &ExpressionContext) -> Fallible<Value> {
         self.value.eval(ctx)
     }
