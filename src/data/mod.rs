@@ -21,11 +21,6 @@ pub enum EntityError {
 mod expression;
 pub use self::expression::{Expression, ExpressionContext, Value};
 
-pub trait Acceleration {
-    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32>;
-    fn modify(&self, value: f32, current: f32, duration: f32) -> f32;
-}
-
 #[derive(Debug, Clone)]
 /// Cause acceleration of a bullet for a given about of time.
 pub struct Accel {
@@ -255,16 +250,6 @@ pub struct Horizontal {
     pub change: Expression,
 }
 
-impl Acceleration for Horizontal {
-    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32> {
-        self.change.eval(ctx)
-    }
-
-    fn modify(&self, value: f32, current: f32, duration: f32) -> f32 {
-        self.kind.modify(value, current, duration)
-    }
-}
-
 #[derive(Debug)]
 /// Repetition action.
 pub struct Repeat {
@@ -315,16 +300,6 @@ pub struct Vertical {
     pub kind: Change,
     /// How much to change by.
     pub change: Expression,
-}
-
-impl Acceleration for Vertical {
-    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32> {
-        self.change.eval(ctx)
-    }
-
-    fn modify(&self, value: f32, current: f32, duration: f32) -> f32 {
-        self.kind.modify(value, current, duration)
-    }
 }
 
 #[derive(Debug, Clone)]
