@@ -7,9 +7,9 @@ include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 
 #[cfg(test)]
 mod test {
-    use data::expression::Value;
     use data::expression::ast::{BinaryOp, Expr, ExprVar, UnaryOp};
     use data::expression::grammar;
+    use data::expression::Value;
 
     #[test]
     fn test_parse_paren_mismatch_fail() {
@@ -79,7 +79,12 @@ mod test {
     }
 
     fn check_binop(actual: Expr, op: BinaryOp, lhs: Value, rhs: Value) {
-        if let Expr::Binary { op: aop, lhs: alhs, rhs: arhs } = actual {
+        if let Expr::Binary {
+            op: aop,
+            lhs: alhs,
+            rhs: arhs,
+        } = actual
+        {
             assert_eq!(aop, op);
             check_literal_ref(alhs.as_ref(), lhs);
             check_literal_ref(arhs.as_ref(), rhs);
@@ -107,7 +112,11 @@ mod test {
     }
 
     fn check_unaryop(actual: Expr, op: UnaryOp, expected: Value) {
-        if let Expr::Unary { op: aop, expr: aexpr } = actual {
+        if let Expr::Unary {
+            op: aop,
+            expr: aexpr,
+        } = actual
+        {
             assert_eq!(aop, op);
             check_literal_ref(aexpr.as_ref(), expected);
         } else {

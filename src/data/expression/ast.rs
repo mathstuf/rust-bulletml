@@ -85,7 +85,10 @@ impl Expr {
 
     pub fn constant_fold(self) -> Self {
         match self {
-            Expr::Unary { op: o, expr: e } => {
+            Expr::Unary {
+                op: o,
+                expr: e,
+            } => {
                 let ne = e.constant_fold();
                 if let Some(v) = ne.constant_value() {
                     Expr::Float(o.eval(v))
@@ -93,7 +96,11 @@ impl Expr {
                     Self::unary(o, ne)
                 }
             },
-            Expr::Binary{ op: o, lhs: l, rhs: r } => {
+            Expr::Binary {
+                op: o,
+                lhs: l,
+                rhs: r,
+            } => {
                 let nl = l.constant_fold();
                 let nr = r.constant_fold();
                 if let (Some(l), Some(r)) = (nl.constant_value(), nr.constant_value()) {
@@ -109,9 +116,9 @@ impl Expr {
 
 #[cfg(test)]
 mod test {
-    use data::expression::Value;
     use data::expression::ast::Expr;
     use data::expression::grammar;
+    use data::expression::Value;
 
     fn parse(expr: &str) -> Expr {
         grammar::expression(expr).unwrap()

@@ -143,8 +143,9 @@ impl Default for Change {
 impl Change {
     /// Change a value.
     pub fn modify<T>(&self, value: T, current: T, duration: T) -> T
-        where T: Add<Output = T>,
-              T: Mul<Output = T>,
+    where
+        T: Add<Output = T>,
+        T: Mul<Output = T>,
     {
         match *self {
             Change::Absolute => value,
@@ -220,7 +221,8 @@ impl<T> EntityRef<T> {
     pub fn entity(&self, lookup: &EntityLookup<T>) -> Result<Rc<T>, EntityError> {
         match *self {
             EntityRef::Ref(ref label) => {
-                lookup.find(&label)
+                lookup
+                    .find(&label)
                     .ok_or_else(|| EntityError::CannotFind(label.clone()).into())
             },
             EntityRef::Real(ref rc) => Ok(rc.clone()),

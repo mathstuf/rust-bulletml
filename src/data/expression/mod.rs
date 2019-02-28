@@ -40,11 +40,14 @@ pub struct Expression {
 impl Expression {
     /// Parse an expression from a string.
     pub fn parse<E>(expr: E) -> Fallible<Self>
-        where E: AsRef<str>,
+    where
+        E: AsRef<str>,
     {
         Ok(grammar::expression(expr.as_ref())
-            .map(|expr| Expression {
-                expr: expr.constant_fold(),
+            .map(|expr| {
+                Expression {
+                    expr: expr.constant_fold(),
+                }
             })
             .context(ExpressionError::ParseFailure)?)
     }
@@ -56,16 +59,17 @@ impl Expression {
 
     fn eval_expr(expr: &Expr, ctx: &ExpressionContext) -> Fallible<Value> {
         match *expr {
-            Expr::Unary { op: ref o, expr: ref e } => {
-                Self::eval_expr(e.as_ref(), ctx)
-                    .map(|r| o.eval(r))
-            },
-            Expr::Binary{ op: ref o, lhs: ref l, rhs: ref r } => {
+            Expr::Unary {
+                op: ref o,
+                expr: ref e,
+            } => Self::eval_expr(e.as_ref(), ctx).map(|r| o.eval(r)),
+            Expr::Binary {
+                op: ref o,
+                lhs: ref l,
+                rhs: ref r,
+            } => {
                 Self::eval_expr(l.as_ref(), ctx)
-                    .and_then(|lr| {
-                        Self::eval_expr(r.as_ref(), ctx)
-                            .map(|rr| o.eval(lr, rr))
-                    })
+                    .and_then(|lr| Self::eval_expr(r.as_ref(), ctx).map(|rr| o.eval(lr, rr)))
             },
             Expr::Float(f) => Ok(f),
             Expr::Var(ref v) => {

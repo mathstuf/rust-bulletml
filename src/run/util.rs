@@ -20,7 +20,12 @@ pub fn ro<T, E>(opt_res: Option<Result<T, E>>) -> Result<Option<T>, E> {
     }
 }
 
-pub fn try_insert<N, V, F>(name: N, map: &mut HashMap<String, V>, f: F, kind: &'static str) -> Result<(), EntityError>
+pub fn try_insert<N, V, F>(
+    name: N,
+    map: &mut HashMap<String, V>,
+    f: F,
+    kind: &'static str,
+) -> Result<(), EntityError>
 where
     N: Into<String>,
     F: FnOnce() -> V,

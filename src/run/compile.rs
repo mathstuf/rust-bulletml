@@ -9,9 +9,10 @@ use std::rc::Rc;
 use crates::failure::Fallible;
 
 use data::{self, EntityLookup};
-pub use data::{Accel, Change, ChangeDirection, ChangeSpeed, Direction, DirectionKind, Expression,
-               ExpressionContext, Horizontal, Orientation, Speed, Term, Times, Value, Vanish,
-               Vertical, Wait};
+pub use data::{
+    Accel, Change, ChangeDirection, ChangeSpeed, Direction, DirectionKind, Expression,
+    ExpressionContext, Horizontal, Orientation, Speed, Term, Times, Value, Vanish, Vertical, Wait,
+};
 use run::util;
 
 #[derive(Debug)]
@@ -43,19 +44,14 @@ impl Step {
             data::Step::Accel(ref accel) => Ok(Step::Accel(accel.clone())),
             data::Step::Wait(ref wait) => Ok(Step::Wait(wait.clone())),
             data::Step::Vanish(ref vanish) => Ok(Step::Vanish(vanish.clone())),
-            data::Step::Repeat(ref repeat) => {
-                Repeat::new(lib, data_lib, repeat)
-                    .map(Step::Repeat)
-            },
+            data::Step::Repeat(ref repeat) => Repeat::new(lib, data_lib, repeat).map(Step::Repeat),
             data::Step::Fire(ref fire) => {
                 let entity = fire.entity(data_lib)?;
-                Fire::new(lib, data_lib, entity)
-                    .map(Step::Fire)
+                Fire::new(lib, data_lib, entity).map(Step::Fire)
             },
             data::Step::Action(ref action) => {
                 let entity = action.entity(data_lib)?;
-                Action::new(lib, data_lib, entity)
-                    .map(Step::Action)
+                Action::new(lib, data_lib, entity).map(Step::Action)
             },
         }
     }
@@ -69,21 +65,34 @@ pub struct Action {
 }
 
 impl Action {
-    fn new(lib: &mut Library, data_lib: &mut DataLibrary, action: Rc<data::Action>) -> Fallible<Rc<Self>> {
+    fn new(
+        lib: &mut Library,
+        data_lib: &mut DataLibrary,
+        action: Rc<data::Action>,
+    ) -> Fallible<Rc<Self>> {
         let comp_action = Rc::new(Action {
-            steps: action.steps
+            steps: action
+                .steps
                 .iter()
                 .map(|step| Step::new(lib, data_lib, step))
                 .collect::<Result<Vec<_>, _>>()?,
         });
 
-        util::ro::<_, util::EntityError>(action.label
-            .as_ref()
-            .map(|name| {
-                util::try_insert(name.clone(), &mut lib.actions, || comp_action.clone(), "action")?;
-                util::try_insert(name.clone(), &mut data_lib.actions, || action.clone(), "action")?;
-                Ok(())
-            }))?;
+        util::ro::<_, util::EntityError>(action.label.as_ref().map(|name| {
+            util::try_insert(
+                name.clone(),
+                &mut lib.actions,
+                || comp_action.clone(),
+                "action",
+            )?;
+            util::try_insert(
+                name.clone(),
+                &mut data_lib.actions,
+                || action.clone(),
+                "action",
+            )?;
+            Ok(())
+        }))?;
 
         Ok(comp_action)
     }
@@ -101,11 +110,16 @@ pub struct Bullet {
 }
 
 impl Bullet {
-    fn new(lib: &mut Library, data_lib: &mut DataLibrary, bullet: Rc<data::Bullet>) -> Fallible<Rc<Self>> {
+    fn new(
+        lib: &mut Library,
+        data_lib: &mut DataLibrary,
+        bullet: Rc<data::Bullet>,
+    ) -> Fallible<Rc<Self>> {
         let comp_bullet = Rc::new(Bullet {
             direction: bullet.direction.clone(),
             speed: bullet.speed.clone(),
-            actions: bullet.actions
+            actions: bullet
+                .actions
                 .iter()
                 .map(|action| {
                     let entity = action.entity(data_lib)?;
@@ -114,13 +128,21 @@ impl Bullet {
                 .collect::<Result<Vec<_>, _>>()?,
         });
 
-        util::ro::<_, util::EntityError>(bullet.label
-            .as_ref()
-            .map(|name| {
-                util::try_insert(name.clone(), &mut lib.bullets, || comp_bullet.clone(), "bullet")?;
-                util::try_insert(name.clone(), &mut data_lib.bullets, || bullet.clone(), "bullet")?;
-                Ok(())
-            }))?;
+        util::ro::<_, util::EntityError>(bullet.label.as_ref().map(|name| {
+            util::try_insert(
+                name.clone(),
+                &mut lib.bullets,
+                || comp_bullet.clone(),
+                "bullet",
+            )?;
+            util::try_insert(
+                name.clone(),
+                &mut data_lib.bullets,
+                || bullet.clone(),
+                "bullet",
+            )?;
+            Ok(())
+        }))?;
 
         Ok(comp_bullet)
     }
@@ -185,7 +207,8 @@ impl BulletML {
         let mut library = Library::default();
         let mut data_library = DataLibrary::default();
 
-        let top_actions = bulletml.elements
+        let top_actions = bulletml
+            .elements
             .into_iter()
             .filter_map(|element| {
                 match element {
@@ -219,7 +242,8 @@ impl BulletML {
                 }
             })
             .collect::<Result<Vec<_>, _>>()?;
-        let actions = top_actions.into_iter()
+        let actions = top_actions
+            .into_iter()
             .map(|action| Action::new(&mut library, &mut data_library, action))
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -243,7 +267,11 @@ pub struct Fire {
 }
 
 impl Fire {
-    fn new(lib: &mut Library, data_lib: &mut DataLibrary, fire: Rc<data::Fire>) -> Fallible<Rc<Self>> {
+    fn new(
+        lib: &mut Library,
+        data_lib: &mut DataLibrary,
+        fire: Rc<data::Fire>,
+    ) -> Fallible<Rc<Self>> {
         let comp_fire = Rc::new(Fire {
             direction: fire.direction.clone(),
             speed: fire.speed.clone(),
@@ -253,13 +281,11 @@ impl Fire {
             },
         });
 
-        util::ro::<_, util::EntityError>(fire.label
-            .as_ref()
-            .map(|name| {
-                util::try_insert(name.clone(), &mut lib.fires, || comp_fire.clone(), "fire")?;
-                util::try_insert(name.clone(), &mut data_lib.fires, || fire.clone(), "fire")?;
-                Ok(())
-            }))?;
+        util::ro::<_, util::EntityError>(fire.label.as_ref().map(|name| {
+            util::try_insert(name.clone(), &mut lib.fires, || comp_fire.clone(), "fire")?;
+            util::try_insert(name.clone(), &mut data_lib.fires, || fire.clone(), "fire")?;
+            Ok(())
+        }))?;
 
         Ok(comp_fire)
     }
@@ -278,7 +304,8 @@ impl Repeat {
     fn new(lib: &mut Library, data_lib: &mut DataLibrary, repeat: &data::Repeat) -> Fallible<Self> {
         Ok(Repeat {
             times: repeat.times.clone(),
-            actions: repeat.actions
+            actions: repeat
+                .actions
                 .iter()
                 .map(|action| {
                     let entity = action.entity(data_lib)?;
