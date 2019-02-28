@@ -15,8 +15,8 @@ pub use data::{
 };
 use run::util;
 
-#[derive(Debug)]
 /// Entities which may appear within an action.
+#[derive(Debug)]
 pub enum Step {
     /// Cause a set of actions to be repeated a number of times.
     Repeat(Repeat),
@@ -57,8 +57,8 @@ impl Step {
     }
 }
 
-#[derive(Debug)]
 /// An action that may be performed for a bullet.
+#[derive(Debug)]
 pub struct Action {
     /// The steps which make up the action.
     pub steps: Vec<Step>,
@@ -98,8 +98,8 @@ impl Action {
     }
 }
 
-#[derive(Debug)]
 /// A bullet.
+#[derive(Debug)]
 pub struct Bullet {
     /// The direction to fire the bullet.
     pub direction: Option<Direction>,
@@ -148,8 +148,8 @@ impl Bullet {
     }
 }
 
-#[derive(Debug, Clone)]
 /// Elements allowed at the top-level of the structure.
+#[derive(Debug, Clone)]
 pub enum Element {
     /// A bullet entity.
     Bullet(Rc<Bullet>),
@@ -191,8 +191,8 @@ impl EntityLookup<data::Fire> for DataLibrary {
     }
 }
 
-#[derive(Debug, Clone)]
 /// The top-level BulletML entity.
+#[derive(Debug, Clone)]
 pub struct BulletML {
     /// The library of elements for the script.
     library: Library,
@@ -255,8 +255,8 @@ impl BulletML {
     }
 }
 
-#[derive(Debug)]
 /// Create a new bullet.
+#[derive(Debug)]
 pub struct Fire {
     /// The direction to fire in.
     pub direction: Option<Direction>,
@@ -291,8 +291,8 @@ impl Fire {
     }
 }
 
-#[derive(Debug)]
 /// Repetition action.
+#[derive(Debug)]
 pub struct Repeat {
     /// How many times to repeat the actions.
     pub times: Times,

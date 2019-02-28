@@ -31,8 +31,8 @@ pub trait ExpressionContext {
     fn rank(&self) -> Value;
 }
 
-#[derive(Debug, Clone)]
 /// An expression which may be evaluated to compute a value.
+#[derive(Debug, Clone)]
 pub struct Expression {
     expr: Expr,
 }

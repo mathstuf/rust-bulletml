@@ -21,8 +21,8 @@ pub enum EntityError {
 mod expression;
 pub use self::expression::{Expression, ExpressionContext, Value};
 
-#[derive(Debug, Clone)]
 /// Cause acceleration of a bullet for a given about of time.
+#[derive(Debug, Clone)]
 pub struct Accel {
     /// The amount to accelerate along the horizontal axis.
     pub horizontal: Option<Horizontal>,
@@ -32,8 +32,8 @@ pub struct Accel {
     pub duration: Term,
 }
 
-#[derive(Debug)]
 /// Entities which may appear within an action.
+#[derive(Debug)]
 pub enum Step {
     /// Cause a set of actions to be repeated a number of times.
     Repeat(Repeat),
@@ -53,8 +53,8 @@ pub enum Step {
     Action(EntityRef<Action>),
 }
 
-#[derive(Debug)]
 /// An action that may be performed for a bullet.
+#[derive(Debug)]
 pub struct Action {
     /// The name of the action.
     pub label: Option<String>,
@@ -62,8 +62,8 @@ pub struct Action {
     pub steps: Vec<Step>,
 }
 
-#[derive(Debug)]
 /// A bullet.
+#[derive(Debug)]
 pub struct Bullet {
     /// The label for the bullet.
     pub label: Option<String>,
@@ -75,8 +75,8 @@ pub struct Bullet {
     pub actions: Vec<EntityRef<Action>>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// The orientation of the game.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Orientation {
     /// For games with a toroidal topology.
     None,
@@ -103,8 +103,8 @@ impl Default for Orientation {
     }
 }
 
-#[derive(Debug, Clone)]
 /// Elements allowed at the top-level of the structure.
+#[derive(Debug, Clone)]
 pub enum Element {
     /// A bullet entity.
     Bullet(Rc<Bullet>),
@@ -114,8 +114,8 @@ pub enum Element {
     Fire(Rc<Fire>),
 }
 
-#[derive(Debug, Clone)]
 /// The top-level BulletML entity.
+#[derive(Debug, Clone)]
 pub struct BulletML {
     /// The orientation of the game.
     pub orientation: Orientation,
@@ -123,8 +123,8 @@ pub struct BulletML {
     pub elements: Vec<Element>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// Ways a value may change.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Change {
     /// Set the value.
     Absolute,
@@ -155,8 +155,8 @@ impl Change {
     }
 }
 
-#[derive(Debug, Clone)]
 /// A change in direction.
+#[derive(Debug, Clone)]
 pub struct ChangeDirection {
     /// The direction to change.
     pub direction: Direction,
@@ -164,8 +164,8 @@ pub struct ChangeDirection {
     pub value: Term,
 }
 
-#[derive(Debug, Clone)]
 /// A change in speed.
+#[derive(Debug, Clone)]
 pub struct ChangeSpeed {
     /// The speed to change.
     pub speed: Speed,
@@ -173,8 +173,8 @@ pub struct ChangeSpeed {
     pub value: Term,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// How to interpret a direction.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DirectionKind {
     /// Aim towards the player.
     Aim,
@@ -192,8 +192,8 @@ impl Default for DirectionKind {
     }
 }
 
-#[derive(Debug, Clone)]
 /// The direction of a bullet.
+#[derive(Debug, Clone)]
 pub struct Direction {
     /// What kind of direction is given.
     pub kind: DirectionKind,
@@ -201,8 +201,8 @@ pub struct Direction {
     pub degrees: Expression,
 }
 
-#[derive(Debug, Clone)]
 /// A reference to a given entity.
+#[derive(Debug, Clone)]
 pub enum EntityRef<T> {
     /// A named entity.
     Ref(String),
@@ -230,8 +230,8 @@ impl<T> EntityRef<T> {
     }
 }
 
-#[derive(Debug)]
 /// Create a new bullet.
+#[derive(Debug)]
 pub struct Fire {
     /// The name of the fire action.
     pub label: Option<String>,
@@ -243,8 +243,8 @@ pub struct Fire {
     pub bullet: EntityRef<Bullet>,
 }
 
-#[derive(Debug, Clone)]
 /// Horizontal change description.
+#[derive(Debug, Clone)]
 pub struct Horizontal {
     /// How to change horizontally.
     pub kind: Change,
@@ -252,8 +252,8 @@ pub struct Horizontal {
     pub change: Expression,
 }
 
-#[derive(Debug)]
 /// Repetition action.
+#[derive(Debug)]
 pub struct Repeat {
     /// How many times to repeat the actions.
     pub times: Times,
@@ -261,8 +261,8 @@ pub struct Repeat {
     pub actions: Vec<EntityRef<Action>>,
 }
 
-#[derive(Debug, Clone)]
 /// A change in speed.
+#[derive(Debug, Clone)]
 pub struct Speed {
     /// How to change the speed.
     pub kind: Change,
@@ -270,8 +270,8 @@ pub struct Speed {
     pub change: Expression,
 }
 
-#[derive(Debug, Clone)]
 /// An expression to compute a value for an action.
+#[derive(Debug, Clone)]
 pub struct Term {
     /// The value of the term.
     pub value: Expression,
@@ -284,19 +284,19 @@ impl Term {
     }
 }
 
-#[derive(Debug, Clone)]
 /// A count of how many times to repeat an action.
+#[derive(Debug, Clone)]
 pub struct Times {
     /// How many times to repeat an action.
     pub value: Expression,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// Cause the bullet to vanish.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Vanish;
 
-#[derive(Debug, Clone)]
 /// Vertical change description.
+#[derive(Debug, Clone)]
 pub struct Vertical {
     /// How to change vertically.
     pub kind: Change,
@@ -304,8 +304,8 @@ pub struct Vertical {
     pub change: Expression,
 }
 
-#[derive(Debug, Clone)]
 /// Pause execution for a given number of frames.
+#[derive(Debug, Clone)]
 pub struct Wait {
     /// The number of frames to wait for.
     pub frames: Expression,
