@@ -1,3 +1,6 @@
+// Distributed under the OSI-approved BSD 2-Clause License.
+// See accompanying LICENSE file for details.
+
 use data::expression::Value;
 use data::expression::ast::{BinaryOp, Expr, ExprVar, UnaryOp};
 
