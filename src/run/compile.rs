@@ -78,21 +78,26 @@ impl Action {
                 .collect::<Result<Vec<_>, _>>()?,
         });
 
-        util::ro::<_, util::EntityError>(action.label.as_ref().map(|name| {
-            util::try_insert(
-                name.clone(),
-                &mut lib.actions,
-                || comp_action.clone(),
-                "action",
-            )?;
-            util::try_insert(
-                name.clone(),
-                &mut data_lib.actions,
-                || action.clone(),
-                "action",
-            )?;
-            Ok(())
-        }))?;
+        action
+            .label
+            .as_ref()
+            .map(|name| {
+                util::try_insert(
+                    name.clone(),
+                    &mut lib.actions,
+                    || comp_action.clone(),
+                    "action",
+                )
+                .and_then(|_| {
+                    util::try_insert(
+                        name.clone(),
+                        &mut data_lib.actions,
+                        || action.clone(),
+                        "action",
+                    )
+                })
+            })
+            .transpose()?;
 
         Ok(comp_action)
     }
@@ -128,21 +133,26 @@ impl Bullet {
                 .collect::<Result<Vec<_>, _>>()?,
         });
 
-        util::ro::<_, util::EntityError>(bullet.label.as_ref().map(|name| {
-            util::try_insert(
-                name.clone(),
-                &mut lib.bullets,
-                || comp_bullet.clone(),
-                "bullet",
-            )?;
-            util::try_insert(
-                name.clone(),
-                &mut data_lib.bullets,
-                || bullet.clone(),
-                "bullet",
-            )?;
-            Ok(())
-        }))?;
+        bullet
+            .label
+            .as_ref()
+            .map(|name| {
+                util::try_insert(
+                    name.clone(),
+                    &mut lib.bullets,
+                    || comp_bullet.clone(),
+                    "bullet",
+                )
+                .and_then(|_| {
+                    util::try_insert(
+                        name.clone(),
+                        &mut data_lib.bullets,
+                        || bullet.clone(),
+                        "bullet",
+                    )
+                })
+            })
+            .transpose()?;
 
         Ok(comp_bullet)
     }
@@ -281,11 +291,15 @@ impl Fire {
             },
         });
 
-        util::ro::<_, util::EntityError>(fire.label.as_ref().map(|name| {
-            util::try_insert(name.clone(), &mut lib.fires, || comp_fire.clone(), "fire")?;
-            util::try_insert(name.clone(), &mut data_lib.fires, || fire.clone(), "fire")?;
-            Ok(())
-        }))?;
+        fire.label
+            .as_ref()
+            .map(|name| {
+                util::try_insert(name.clone(), &mut lib.fires, || comp_fire.clone(), "fire")
+                    .and_then(|_| {
+                        util::try_insert(name.clone(), &mut data_lib.fires, || fire.clone(), "fire")
+                    })
+            })
+            .transpose()?;
 
         Ok(comp_fire)
     }
