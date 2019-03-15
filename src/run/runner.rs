@@ -328,7 +328,7 @@ where
         if bullet.actions.is_empty() {
             self.manager.new_simple(dir, speed);
         } else {
-            // TODO: The actions need to be handled here.
+            // TODO(#4): The actions need to be handled here.
             self.manager.new(dir, speed);
         }
 
@@ -417,8 +417,7 @@ where
                 };
 
                 if let Status::NewSteps(steps) = status {
-                    steps.into_iter()
-                        .for_each(|step| node.add_child(step));
+                    steps.into_iter().for_each(|step| node.add_child(step));
                     Status::Continue
                 } else {
                     status

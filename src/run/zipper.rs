@@ -190,11 +190,12 @@ mod test {
     #[test]
     fn test_zipper_iter() {
         let tree = Node::new(0);
-        let mut zipper = tree.zipper();
+        let zipper = tree.zipper();
         let mut iter = zipper.iter();
         assert_eq!(iter.next(), Some(&0));
-        assert_eq!(iter.is_at_end(), true);
+        assert_eq!(iter.done, false);
         assert_eq!(iter.next(), None);
+        assert_eq!(iter.done, true);
     }
 
     #[test]
@@ -203,17 +204,18 @@ mod test {
         tree.add_child(Node::new(1));
         tree.add_child(Node::new(2));
         tree.add_child(Node::new(3));
-        let mut zipper = tree.zipper();
+        let zipper = tree.zipper();
         let mut iter = zipper.iter();
         assert_eq!(iter.next(), Some(&0));
-        assert_eq!(iter.is_at_end(), true);
+        assert_eq!(iter.done, false);
         assert_eq!(iter.next(), Some(&1));
-        assert_eq!(iter.is_at_end(), false);
+        assert_eq!(iter.done, false);
         assert_eq!(iter.next(), Some(&2));
-        assert_eq!(iter.is_at_end(), false);
+        assert_eq!(iter.done, false);
         assert_eq!(iter.next(), Some(&3));
-        assert_eq!(iter.is_at_end(), true);
+        assert_eq!(iter.done, false);
         assert_eq!(iter.next(), None);
+        assert_eq!(iter.done, true);
     }
 
     #[test]
@@ -223,16 +225,17 @@ mod test {
         child.add_child(Node::new(2));
         child.add_child(Node::new(3));
         tree.add_child(child);
-        let mut zipper = tree.zipper();
+        let zipper = tree.zipper();
         let mut iter = zipper.iter();
         assert_eq!(iter.next(), Some(&0));
-        assert_eq!(iter.is_at_end(), true);
+        assert_eq!(iter.done, false);
         assert_eq!(iter.next(), Some(&1));
-        assert_eq!(iter.is_at_end(), true);
+        assert_eq!(iter.done, false);
         assert_eq!(iter.next(), Some(&2));
-        assert_eq!(iter.is_at_end(), false);
+        assert_eq!(iter.done, false);
         assert_eq!(iter.next(), Some(&3));
-        assert_eq!(iter.is_at_end(), true);
+        assert_eq!(iter.done, false);
         assert_eq!(iter.next(), None);
+        assert_eq!(iter.done, true);
     }
 }
