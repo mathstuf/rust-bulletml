@@ -212,17 +212,6 @@ impl Bullet {
     }
 }
 
-/// Elements allowed at the top-level of the structure.
-#[derive(Debug, Clone)]
-pub enum Element {
-    /// A bullet entity.
-    Bullet(Rc<Bullet>),
-    /// An action entity.
-    Action(Rc<Action>),
-    /// A fire entity.
-    Fire(Rc<Fire>),
-}
-
 #[derive(Debug, Clone, Default)]
 struct Library {
     actions: HashMap<String, Rc<Action>>,
