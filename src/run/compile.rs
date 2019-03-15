@@ -1,9 +1,8 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-#![allow(dead_code)]
-
 use std::collections::hash_map::HashMap;
+use std::iter;
 use std::rc::Rc;
 
 use crates::failure::Fallible;
@@ -14,10 +13,31 @@ pub use data::{
     ExpressionContext, Horizontal, Orientation, Speed, Term, Times, Value, Vanish, Vertical, Wait,
 };
 use run::util;
+use run::{Node, ZipperIter};
+
+/// Entities which may appear within an action tree.
+#[derive(Debug)]
+pub enum NodeStep {
+    Root,
+    /// Cause a set of actions to be repeated a number of times.
+    Repeat(Repeat),
+    /// Cause a set bullets to be fired.
+    Fire(Rc<Fire>),
+    /// A change of speed.
+    ChangeSpeed(ChangeSpeed),
+    /// A change of direction.
+    ChangeDirection(ChangeDirection),
+    /// An acceleration.
+    Accel(Accel),
+    /// Pause for a number of frames.
+    Wait(Wait),
+    /// Destroy the bullet.
+    Vanish(Vanish),
+}
 
 /// Entities which may appear within an action.
-#[derive(Debug)]
-pub enum Step {
+#[derive(Debug, Clone)]
+enum Step {
     /// Cause a set of actions to be repeated a number of times.
     Repeat(Repeat),
     /// Cause a set bullets to be fired.
@@ -44,7 +64,9 @@ impl Step {
             data::Step::Accel(ref accel) => Ok(Step::Accel(accel.clone())),
             data::Step::Wait(ref wait) => Ok(Step::Wait(wait.clone())),
             data::Step::Vanish(vanish) => Ok(Step::Vanish(vanish)),
-            data::Step::Repeat(ref repeat) => Repeat::new(lib, data_lib, repeat).map(Step::Repeat),
+            data::Step::Repeat(ref repeat) => {
+                Repeat::new(lib, data_lib, repeat).map(|r| Step::Repeat(r))
+            },
             data::Step::Fire(ref fire) => {
                 let entity = fire.entity(data_lib)?;
                 Fire::new(lib, data_lib, entity).map(Step::Fire)
@@ -55,13 +77,35 @@ impl Step {
             },
         }
     }
+
+    fn into_node(self) -> Node<NodeStep> {
+        match self {
+            Step::ChangeSpeed(cs) => Node::new(NodeStep::ChangeSpeed(cs)),
+            Step::ChangeDirection(cd) => Node::new(NodeStep::ChangeDirection(cd)),
+            Step::Accel(accel) => Node::new(NodeStep::Accel(accel)),
+            Step::Wait(wait) => Node::new(NodeStep::Wait(wait)),
+            Step::Vanish(vanish) => Node::new(NodeStep::Vanish(vanish)),
+            Step::Repeat(repeat) => Node::new(NodeStep::Repeat(repeat)),
+            Step::Fire(fire) => Node::new(NodeStep::Fire(fire)),
+            Step::Action(action) => {
+                let mut node = Node::new(NodeStep::Root);
+                action
+                    .steps
+                    .iter()
+                    .cloned()
+                    .for_each(|step| node.add_child(step.into_node()));
+
+                node
+            },
+        }
+    }
 }
 
 /// An action that may be performed for a bullet.
 #[derive(Debug)]
 pub struct Action {
     /// The steps which make up the action.
-    pub steps: Vec<Step>,
+    steps: Vec<Step>,
 }
 
 impl Action {
@@ -100,6 +144,16 @@ impl Action {
             .transpose()?;
 
         Ok(comp_action)
+    }
+
+    fn node(&self) -> Node<NodeStep> {
+        let mut node = Node::new(NodeStep::Root);
+        self.steps
+            .iter()
+            .cloned()
+            .for_each(|step| node.add_child(step.into_node()));
+
+        node
     }
 }
 
@@ -202,14 +256,12 @@ impl EntityLookup<data::Fire> for DataLibrary {
 }
 
 /// The top-level BulletML entity.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct BulletML {
-    /// The library of elements for the script.
-    library: Library,
     /// The orientation of the game.
     pub orientation: Orientation,
     /// The actions which make up the entity.
-    pub actions: Vec<Rc<Action>>,
+    pub steps: ZipperIter<NodeStep>,
 }
 
 impl BulletML {
@@ -256,11 +308,14 @@ impl BulletML {
             .into_iter()
             .map(|action| Action::new(&mut library, &mut data_library, action))
             .collect::<Result<Vec<_>, _>>()?;
+        let mut node = Node::new(NodeStep::Root);
+        actions
+            .into_iter()
+            .for_each(|action| node.add_child(action.node()));
 
         Ok(BulletML {
             orientation: bulletml.orientation,
-            actions,
-            library,
+            steps: node.zipper().iter(),
         })
     }
 }
@@ -306,12 +361,12 @@ impl Fire {
 }
 
 /// Repetition action.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Repeat {
     /// How many times to repeat the actions.
     pub times: Times,
     /// The actions to repeat.
-    pub actions: Vec<Rc<Action>>,
+    actions: Vec<Rc<Action>>,
 }
 
 impl Repeat {
@@ -327,6 +382,19 @@ impl Repeat {
                 })
                 .collect::<Result<Vec<_>, _>>()?,
         })
+    }
+
+    pub fn new_steps(&self, count: usize) -> Vec<Node<NodeStep>> {
+        iter::repeat(())
+            .take(count)
+            .map(|_| {
+                self.actions
+                    .iter()
+                    .cloned()
+            })
+            .flatten()
+            .map(|action| Step::Action(action).into_node())
+            .collect()
     }
 }
 
