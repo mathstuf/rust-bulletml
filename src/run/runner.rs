@@ -328,7 +328,7 @@ where
         if bullet.actions.is_empty() {
             self.manager.new_simple(dir, speed);
         } else {
-            // TODO: The actions need to be handled here.
+            // TODO(#4): The actions need to be handled here.
             self.manager.new(dir, speed);
         }
 
