@@ -3,3 +3,7 @@
 
 mod compile;
 mod util;
+mod zipper;
+
+use self::zipper::Node;
+use self::zipper::ZipperIter;
