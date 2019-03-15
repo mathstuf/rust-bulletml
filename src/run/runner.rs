@@ -417,8 +417,7 @@ where
                 };
 
                 if let Status::NewSteps(steps) = status {
-                    steps.into_iter()
-                        .for_each(|step| node.add_child(step));
+                    steps.into_iter().for_each(|step| node.add_child(step));
                     Status::Continue
                 } else {
                     status

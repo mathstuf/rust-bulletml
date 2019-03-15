@@ -376,11 +376,7 @@ impl Repeat {
     pub fn new_steps(&self, count: usize) -> Vec<Node<NodeStep>> {
         iter::repeat(())
             .take(count)
-            .map(|_| {
-                self.actions
-                    .iter()
-                    .cloned()
-            })
+            .map(|_| self.actions.iter().cloned())
             .flatten()
             .map(|action| Step::Action(action).into_node())
             .collect()
