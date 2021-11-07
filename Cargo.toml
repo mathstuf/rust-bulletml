@@ -6,11 +6,8 @@ readme = "README.md"
 license = "BSD-2-Clause"
 repository = "https://github.com/mathstuf/rust-bulletml"
 homepage = "https://github.com/mathstuf/rust-bulletml"
-build = "build.rs"
 edition = "2018"
-
-[build-dependencies]
-peg = "~0.5"
 
 [dependencies]
 failure = "~0.1"
+peg = "~0.7"

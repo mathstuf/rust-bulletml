@@ -1,7 +1,82 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
+peg::parser! {
+    grammar expression() for str {
+        use crate::data::expression::Value;
+        use crate::data::expression::ast::{BinaryOp, Expr, ExprVar, UnaryOp};
+
+        pub rule expression() -> Expr
+            = binary_expression()
+            / simple_expression()
+
+        rule binary_expression() -> Expr = precedence!{
+            x:(@) OP_ADD() y:@ { Expr::binary(BinaryOp::Add, x, y) }
+            x:(@) OP_SUB() y:@ { Expr::binary(BinaryOp::Sub, x, y) }
+            --
+            x:(@) OP_MUL() y:@ { Expr::binary(BinaryOp::Mul, x, y) }
+            x:(@) OP_DIV() y:@ { Expr::binary(BinaryOp::Div, x, y) }
+            x:(@) OP_MOD() y:@ { Expr::binary(BinaryOp::Mod, x, y) }
+            --
+            x:simple_expression() { x }
+        }
+
+        rule OP_ADD() = "+" __
+        rule OP_SUB() = "-" __
+        rule OP_MUL() = "*" __
+        rule OP_DIV() = "/" __
+        rule OP_MOD() = "%" __
+
+        rule simple_expression() -> Expr
+            = OP_OPEN_PAREN() e:expression() OP_CLOSE_PAREN() { e }
+            / OP_SUB() e:expression() { Expr::unary(UnaryOp::Negate, e) }
+            / literal()
+            / identifier()
+
+        rule OP_OPEN_PAREN() = "(" __
+        rule OP_CLOSE_PAREN() = ")" __
+
+        rule literal() -> Expr
+            = f:float() { Expr::Float(f) }
+            / f:integer() { Expr::Float(f) }
+
+        rule float() -> Value
+            = quiet!{_float()} / expected!("number")
+
+        rule _float() -> Value
+            = f:$(['0'..='9']+"."['0'..='9']*) __ { f.parse().unwrap() }
+            / f:$("."['0'..='9']+) __ { f.parse().unwrap() }
+
+        rule integer() -> Value
+            = quiet!{_integer()} / expected!("number")
+
+        rule _integer() -> Value
+            = f:$(['0'..='9']+) __ { f.parse().unwrap() }
+
+        rule identifier() -> Expr
+            = quiet!{_identifier()} / expected!("variable")
+
+        rule _identifier() -> Expr
+            = "$" v:varname() { Expr::Var(v) }
+
+        rule varname() -> ExprVar
+            = n:$(['a'..='z' | 'A'..='Z' | '_']+) __ {
+                if n == "rank" {
+                    ExprVar::Rank
+                } else if n == "rand" {
+                    ExprVar::Rand
+                } else {
+                    ExprVar::Named(n.into())
+                }
+            }
+
+        rule __ = whitespace()*
+
+        rule whitespace() = quiet!{[' ' | '\t']}
+    }
+}
+
+pub use self::expression::expression;
 
 #[cfg(test)]
 mod test {
@@ -13,27 +88,27 @@ mod test {
     fn test_parse_paren_mismatch_fail() {
         let err = grammar::expression("(").unwrap_err();
 
-        assert_eq!(err.line, 1);
-        assert_eq!(err.column, 2);
-        assert_eq!(err.offset, 1);
+        assert_eq!(err.location.line, 1);
+        assert_eq!(err.location.column, 2);
+        assert_eq!(err.location.offset, 1);
     }
 
     #[test]
     fn test_parse_lonely_binop_fail() {
         let err = grammar::expression("+").unwrap_err();
 
-        assert_eq!(err.line, 1);
-        assert_eq!(err.column, 1);
-        assert_eq!(err.offset, 0);
+        assert_eq!(err.location.line, 1);
+        assert_eq!(err.location.column, 1);
+        assert_eq!(err.location.offset, 0);
     }
 
     #[test]
     fn test_parse_half_binop_fail() {
         let err = grammar::expression("4+").unwrap_err();
 
-        assert_eq!(err.line, 1);
-        assert_eq!(err.column, 3);
-        assert_eq!(err.offset, 2);
+        assert_eq!(err.location.line, 1);
+        assert_eq!(err.location.column, 3);
+        assert_eq!(err.location.offset, 2);
     }
 
     fn check_literal(actual: Expr, expected: Value) {
