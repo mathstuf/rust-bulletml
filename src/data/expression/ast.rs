@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use data::expression::Value;
+use crate::data::expression::Value;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExprVar {
@@ -116,9 +116,9 @@ impl Expr {
 
 #[cfg(test)]
 mod test {
-    use data::expression::ast::Expr;
-    use data::expression::grammar;
-    use data::expression::Value;
+    use crate::data::expression::ast::Expr;
+    use crate::data::expression::grammar;
+    use crate::data::expression::Value;
 
     fn parse(expr: &str) -> Expr {
         grammar::expression(expr).unwrap()

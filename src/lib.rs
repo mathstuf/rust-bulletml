@@ -7,12 +7,5 @@
 
 #![warn(missing_docs)]
 
-#[macro_use]
-extern crate failure;
-
-mod crates {
-    pub extern crate failure;
-}
-
 pub mod data;
 pub mod run;

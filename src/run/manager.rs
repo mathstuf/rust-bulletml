@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use run::compile::ExpressionContext;
+use crate::run::compile::ExpressionContext;
 
 /// The implementation of a bullet.
 ///

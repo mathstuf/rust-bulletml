@@ -8,7 +8,7 @@
 use std::ops::{Add, Mul};
 use std::rc::Rc;
 
-use crates::failure::Fallible;
+use failure::{Fail, Fallible};
 
 /// An error related to entity searches.
 #[derive(Debug, Fail)]
@@ -218,7 +218,7 @@ pub trait EntityLookup<T> {
 
 impl<T> EntityRef<T> {
     /// Get a reference to the entity.
-    pub fn entity(&self, lookup: &EntityLookup<T>) -> Result<Rc<T>, EntityError> {
+    pub fn entity(&self, lookup: &dyn EntityLookup<T>) -> Result<Rc<T>, EntityError> {
         match *self {
             EntityRef::Ref(ref label) => {
                 lookup
@@ -279,7 +279,7 @@ pub struct Term {
 
 impl Term {
     /// Evaluate the term in the given context.
-    pub fn eval(&self, ctx: &ExpressionContext) -> Fallible<Value> {
+    pub fn eval(&self, ctx: &dyn ExpressionContext) -> Fallible<Value> {
         self.value.eval(ctx)
     }
 }

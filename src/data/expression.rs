@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::failure::{Fallible, ResultExt};
+use failure::{Fail, Fallible, ResultExt};
 
 mod ast;
 mod grammar;
@@ -53,11 +53,11 @@ impl Expression {
     }
 
     /// Evaluate the expression with a given context.
-    pub fn eval(&self, ctx: &ExpressionContext) -> Fallible<Value> {
+    pub fn eval(&self, ctx: &dyn ExpressionContext) -> Fallible<Value> {
         Self::eval_expr(&self.expr, ctx)
     }
 
-    fn eval_expr(expr: &Expr, ctx: &ExpressionContext) -> Fallible<Value> {
+    fn eval_expr(expr: &Expr, ctx: &dyn ExpressionContext) -> Fallible<Value> {
         match *expr {
             Expr::Unary {
                 op: ref o,

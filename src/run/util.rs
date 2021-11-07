@@ -3,6 +3,8 @@
 
 use std::collections::hash_map::{Entry, HashMap};
 
+use failure::Fail;
+
 #[derive(Debug, Fail)]
 pub enum EntityError {
     #[fail(display = "duplicate {} entity `{}`", _1, _0)]

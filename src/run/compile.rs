@@ -5,15 +5,15 @@ use std::collections::hash_map::HashMap;
 use std::iter;
 use std::rc::Rc;
 
-use crates::failure::Fallible;
+use failure::Fallible;
 
-use data::{self, EntityLookup};
-pub use data::{
+use crate::data::{self, EntityLookup};
+pub use crate::data::{
     Accel, Change, ChangeDirection, ChangeSpeed, Direction, DirectionKind, Expression,
     ExpressionContext, Horizontal, Orientation, Speed, Term, Times, Value, Vanish, Vertical, Wait,
 };
-use run::util;
-use run::{Node, ZipperIter};
+use crate::run::util;
+use crate::run::{Node, ZipperIter};
 
 /// Entities which may appear within an action tree.
 #[derive(Debug)]
@@ -384,12 +384,12 @@ impl Repeat {
 }
 
 pub trait Acceleration {
-    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32>;
+    fn amount(&self, ctx: &dyn ExpressionContext) -> Fallible<f32>;
     fn modify(&self, value: f32, current: f32, duration: f32) -> f32;
 }
 
 impl Acceleration for Horizontal {
-    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32> {
+    fn amount(&self, ctx: &dyn ExpressionContext) -> Fallible<f32> {
         self.change.eval(ctx)
     }
 
@@ -399,7 +399,7 @@ impl Acceleration for Horizontal {
 }
 
 impl Acceleration for Vertical {
-    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32> {
+    fn amount(&self, ctx: &dyn ExpressionContext) -> Fallible<f32> {
         self.change.eval(ctx)
     }
 

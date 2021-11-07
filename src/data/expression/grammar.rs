@@ -5,9 +5,9 @@ include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 
 #[cfg(test)]
 mod test {
-    use data::expression::ast::{BinaryOp, Expr, ExprVar, UnaryOp};
-    use data::expression::grammar;
-    use data::expression::Value;
+    use crate::data::expression::ast::{BinaryOp, Expr, ExprVar, UnaryOp};
+    use crate::data::expression::grammar;
+    use crate::data::expression::Value;
 
     #[test]
     fn test_parse_paren_mismatch_fail() {

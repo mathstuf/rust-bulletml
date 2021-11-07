@@ -1,12 +1,12 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::failure::Fallible;
+use failure::Fallible;
 
-use data;
-use run::compile::*;
-use run::BulletManager;
-use run::Node;
+use crate::data;
+use crate::run::compile::*;
+use crate::run::BulletManager;
+use crate::run::Node;
 
 #[derive(Debug, Clone, Copy)]
 struct Function {
