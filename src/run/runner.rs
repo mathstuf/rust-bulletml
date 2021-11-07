@@ -398,7 +398,7 @@ where
 
         loop {
             let status = {
-                let mut node = if let Some(node) = self.bulletml.steps.current_mut() {
+                let node = if let Some(node) = self.bulletml.steps.current_mut() {
                     updated = true;
                     node
                 } else {

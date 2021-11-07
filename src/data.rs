@@ -222,7 +222,7 @@ impl<T> EntityRef<T> {
         match *self {
             EntityRef::Ref(ref label) => {
                 lookup
-                    .find(&label)
+                    .find(label)
                     .ok_or_else(|| EntityError::CannotFind(label.clone()))
             },
             EntityRef::Real(ref rc) => Ok(rc.clone()),

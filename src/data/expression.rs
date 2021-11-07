@@ -77,7 +77,7 @@ impl Expression {
                     ExprVar::Rank => Ok(ctx.rank()),
                     ExprVar::Rand => Ok(ctx.rand()),
                     ExprVar::Named(ref n) => {
-                        ctx.get(&n)
+                        ctx.get(n)
                             .ok_or_else(|| ExpressionError::UndefinedVariable(n.clone()).into())
                     },
                 }

@@ -65,7 +65,7 @@ impl Step {
             data::Step::Wait(ref wait) => Ok(Step::Wait(wait.clone())),
             data::Step::Vanish(vanish) => Ok(Step::Vanish(vanish)),
             data::Step::Repeat(ref repeat) => {
-                Repeat::new(lib, data_lib, repeat).map(|r| Step::Repeat(r))
+                Repeat::new(lib, data_lib, repeat).map(Step::Repeat)
             },
             data::Step::Fire(ref fire) => {
                 let entity = fire.entity(data_lib)?;

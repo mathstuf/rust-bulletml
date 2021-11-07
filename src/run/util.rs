@@ -23,7 +23,7 @@ where
 {
     let entry = map.entry(name.into());
     if let Entry::Occupied(ref o) = entry {
-        Err(EntityError::Duplicate(o.key().clone(), kind))?;
+        return Err(EntityError::Duplicate(o.key().clone(), kind));
     }
 
     entry.or_insert_with(f);
