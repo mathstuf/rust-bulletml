@@ -8,4 +8,5 @@
 #![warn(missing_docs)]
 
 pub mod data;
+mod parse;
 pub mod run;
