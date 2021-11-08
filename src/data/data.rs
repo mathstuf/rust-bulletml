@@ -207,11 +207,27 @@ pub struct Direction {
     pub degrees: Expression,
 }
 
+/// A parameter to an entity reference.
+#[derive(Debug, Clone)]
+pub struct Param {
+    /// The expression of the parameter.
+    value: Expression,
+}
+
+/// A reference to another entity.
+#[derive(Debug, Clone)]
+pub struct Reference {
+    /// The name of the referred-to entity.
+    label: String,
+    /// Parameters to forward to the entity.
+    params: Vec<Param>,
+}
+
 /// A reference to a given entity.
 #[derive(Debug, Clone)]
 pub enum EntityRef<T> {
     /// A named entity.
-    Ref(String),
+    Ref(Reference),
     /// An actual entity.
     Real(Rc<T>),
 }
@@ -226,10 +242,10 @@ impl<T> EntityRef<T> {
     /// Get a reference to the entity.
     pub fn entity(&self, lookup: &dyn EntityLookup<T>) -> Result<Rc<T>, EntityError> {
         match *self {
-            EntityRef::Ref(ref label) => {
+            EntityRef::Ref(ref refer) => {
                 lookup
-                    .find(label)
-                    .ok_or_else(|| EntityError::cannot_find(label.clone()))
+                    .find(&refer.label)
+                    .ok_or_else(|| EntityError::cannot_find(refer.label.clone()))
             },
             EntityRef::Real(ref rc) => Ok(rc.clone()),
         }
