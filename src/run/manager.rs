@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use run::compile::ExpressionContext;
+use crate::run::compile::ExpressionContext;
 
 /// The implementation of a bullet.
 ///
@@ -11,7 +11,7 @@ pub trait BulletManager: ExpressionContext {
     /// Create a new, simple, bullet.
     fn new_simple(&mut self, direction: f32, speed: f32);
     /// Create a new bullet.
-    fn new(&mut self, direction: f32, speed: f32);
+    fn new_bullet(&mut self, direction: f32, speed: f32);
     /// The turn of the simulation.
     fn turn(&self) -> u32;
 

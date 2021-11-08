@@ -5,15 +5,16 @@ use std::collections::hash_map::HashMap;
 use std::iter;
 use std::rc::Rc;
 
-use crates::failure::Fallible;
+use thiserror::Error;
 
-use data::{self, EntityLookup};
-pub use data::{
+use crate::data::{self, EntityLookup, ExpressionError};
+pub use crate::data::{
     Accel, Change, ChangeDirection, ChangeSpeed, Direction, DirectionKind, Expression,
     ExpressionContext, Horizontal, Orientation, Speed, Term, Times, Value, Vanish, Vertical, Wait,
 };
-use run::util;
-use run::{Node, ZipperIter};
+use crate::run::compile;
+use crate::run::util;
+use crate::run::{Node, ZipperIter};
 
 /// Entities which may appear within an action tree.
 #[derive(Debug)]
@@ -56,8 +57,36 @@ enum Step {
     Action(Rc<Action>),
 }
 
+#[derive(Debug, Error)]
+pub enum StepError {
+    #[error("lookup entity")]
+    EntityLookup {
+        #[from]
+        source: data::EntityError,
+    },
+    #[error("<repeat> error")]
+    Repeat {
+        #[from]
+        source: RepeatError,
+    },
+    #[error("<fire> error")]
+    Fire {
+        #[from]
+        source: FireError,
+    },
+    #[error("<action> error")]
+    Action {
+        #[from]
+        source: ActionError,
+    },
+}
+
 impl Step {
-    fn new(lib: &mut Library, data_lib: &mut DataLibrary, step: &data::Step) -> Fallible<Self> {
+    fn new(
+        lib: &mut Library,
+        data_lib: &mut DataLibrary,
+        step: &data::Step,
+    ) -> Result<Self, StepError> {
         match *step {
             data::Step::ChangeSpeed(ref cs) => Ok(Step::ChangeSpeed(cs.clone())),
             data::Step::ChangeDirection(ref cd) => Ok(Step::ChangeDirection(cd.clone())),
@@ -65,15 +94,15 @@ impl Step {
             data::Step::Wait(ref wait) => Ok(Step::Wait(wait.clone())),
             data::Step::Vanish(vanish) => Ok(Step::Vanish(vanish)),
             data::Step::Repeat(ref repeat) => {
-                Repeat::new(lib, data_lib, repeat).map(|r| Step::Repeat(r))
+                Ok(Repeat::new(lib, data_lib, repeat).map(Step::Repeat)?)
             },
             data::Step::Fire(ref fire) => {
                 let entity = fire.entity(data_lib)?;
-                Fire::new(lib, data_lib, entity).map(Step::Fire)
+                Ok(Fire::new(lib, data_lib, entity).map(Step::Fire)?)
             },
             data::Step::Action(ref action) => {
                 let entity = action.entity(data_lib)?;
-                Action::new(lib, data_lib, entity).map(Step::Action)
+                Ok(Action::new(lib, data_lib, entity).map(Step::Action)?)
             },
         }
     }
@@ -108,18 +137,38 @@ pub struct Action {
     steps: Vec<Step>,
 }
 
+#[derive(Debug, Error)]
+pub enum ActionError {
+    #[error("lookup entity")]
+    EntityLookup {
+        #[from]
+        source: data::EntityError,
+    },
+    #[error("using entity")]
+    EntityUse {
+        #[from]
+        source: util::EntityError,
+    },
+    #[error("<step> error")]
+    Step {
+        #[from]
+        source: Box<StepError>,
+    },
+}
+
 impl Action {
     fn new(
         lib: &mut Library,
         data_lib: &mut DataLibrary,
         action: Rc<data::Action>,
-    ) -> Fallible<Rc<Self>> {
+    ) -> Result<Rc<Self>, ActionError> {
         let comp_action = Rc::new(Action {
             steps: action
                 .steps
                 .iter()
                 .map(|step| Step::new(lib, data_lib, step))
-                .collect::<Result<Vec<_>, _>>()?,
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(Box::new)?,
         });
 
         action
@@ -157,6 +206,20 @@ impl Action {
     }
 }
 
+#[derive(Debug, Error)]
+pub enum BulletError {
+    #[error("using entity")]
+    EntityUse {
+        #[from]
+        source: util::EntityError,
+    },
+    #[error("<action> error")]
+    Action {
+        #[from]
+        source: ActionError,
+    },
+}
+
 /// A bullet.
 #[derive(Debug)]
 pub struct Bullet {
@@ -173,7 +236,7 @@ impl Bullet {
         lib: &mut Library,
         data_lib: &mut DataLibrary,
         bullet: Rc<data::Bullet>,
-    ) -> Fallible<Rc<Self>> {
+    ) -> Result<Rc<Self>, BulletError> {
         let comp_bullet = Rc::new(Bullet {
             direction: bullet.direction.clone(),
             speed: bullet.speed.clone(),
@@ -244,6 +307,25 @@ impl EntityLookup<data::Fire> for DataLibrary {
     }
 }
 
+#[derive(Debug, Error)]
+pub enum BulletMLError {
+    #[error("<action> error")]
+    Action {
+        #[from]
+        source: compile::ActionError,
+    },
+    #[error("<bullet> error")]
+    Bullet {
+        #[from]
+        source: compile::BulletError,
+    },
+    #[error("<fire> error")]
+    Fire {
+        #[from]
+        source: compile::FireError,
+    },
+}
+
 /// The top-level BulletML entity.
 #[derive(Debug)]
 pub struct BulletML {
@@ -254,7 +336,7 @@ pub struct BulletML {
 }
 
 impl BulletML {
-    pub fn new(bulletml: data::BulletML) -> Fallible<Self> {
+    pub fn new(bulletml: data::BulletML) -> Result<Self, BulletMLError> {
         let mut library = Library::default();
         let mut data_library = DataLibrary::default();
 
@@ -267,14 +349,14 @@ impl BulletML {
                         let bullet = Bullet::new(&mut library, &mut data_library, bullet);
                         match bullet {
                             Ok(_) => None,
-                            Err(err) => Some(Err(err)),
+                            Err(err) => Some(Err(err.into())),
                         }
                     },
                     data::Element::Fire(fire) => {
                         let fire = Fire::new(&mut library, &mut data_library, fire);
                         match fire {
                             Ok(_) => None,
-                            Err(err) => Some(Err(err)),
+                            Err(err) => Some(Err(err.into())),
                         }
                     },
                     data::Element::Action(action) => {
@@ -287,12 +369,12 @@ impl BulletML {
                         let action = Action::new(&mut library, &mut data_library, action);
                         match action {
                             Ok(_) => None,
-                            Err(err) => Some(Err(err)),
+                            Err(err) => Some(Err(err.into())),
                         }
                     },
                 }
             })
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<Vec<_>, BulletMLError>>()?;
         let actions = top_actions
             .into_iter()
             .map(|action| Action::new(&mut library, &mut data_library, action))
@@ -307,6 +389,25 @@ impl BulletML {
             steps: node.zipper().iter(),
         })
     }
+}
+
+#[derive(Debug, Error)]
+pub enum FireError {
+    #[error("lookup entity")]
+    EntityLookup {
+        #[from]
+        source: data::EntityError,
+    },
+    #[error("using entity")]
+    EntityUse {
+        #[from]
+        source: util::EntityError,
+    },
+    #[error("<bullet> error")]
+    Bullet {
+        #[from]
+        source: compile::BulletError,
+    },
 }
 
 /// Create a new bullet.
@@ -325,7 +426,7 @@ impl Fire {
         lib: &mut Library,
         data_lib: &mut DataLibrary,
         fire: Rc<data::Fire>,
-    ) -> Fallible<Rc<Self>> {
+    ) -> Result<Rc<Self>, FireError> {
         let comp_fire = Rc::new(Fire {
             direction: fire.direction.clone(),
             speed: fire.speed.clone(),
@@ -349,6 +450,15 @@ impl Fire {
     }
 }
 
+#[derive(Debug, Error)]
+pub enum RepeatError {
+    #[error("<action> error")]
+    Action {
+        #[from]
+        source: ActionError,
+    },
+}
+
 /// Repetition action.
 #[derive(Debug, Clone)]
 pub struct Repeat {
@@ -359,7 +469,11 @@ pub struct Repeat {
 }
 
 impl Repeat {
-    fn new(lib: &mut Library, data_lib: &mut DataLibrary, repeat: &data::Repeat) -> Fallible<Self> {
+    fn new(
+        lib: &mut Library,
+        data_lib: &mut DataLibrary,
+        repeat: &data::Repeat,
+    ) -> Result<Self, RepeatError> {
         Ok(Repeat {
             times: repeat.times.clone(),
             actions: repeat
@@ -384,12 +498,12 @@ impl Repeat {
 }
 
 pub trait Acceleration {
-    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32>;
+    fn amount(&self, ctx: &dyn ExpressionContext) -> Result<f32, ExpressionError>;
     fn modify(&self, value: f32, current: f32, duration: f32) -> f32;
 }
 
 impl Acceleration for Horizontal {
-    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32> {
+    fn amount(&self, ctx: &dyn ExpressionContext) -> Result<f32, ExpressionError> {
         self.change.eval(ctx)
     }
 
@@ -399,7 +513,7 @@ impl Acceleration for Horizontal {
 }
 
 impl Acceleration for Vertical {
-    fn amount(&self, ctx: &ExpressionContext) -> Fallible<f32> {
+    fn amount(&self, ctx: &dyn ExpressionContext) -> Result<f32, ExpressionError> {
         self.change.eval(ctx)
     }
 

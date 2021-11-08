@@ -1,19 +1,40 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::failure::{Fallible, ResultExt};
+use thiserror::Error;
 
 mod ast;
 mod grammar;
 
 use self::ast::{Expr, ExprVar};
 
-#[derive(Debug, Fail)]
+/// An error when evaluating an expression.
+#[derive(Debug, Error)]
 pub enum ExpressionError {
-    #[fail(display = "failed to parse expression")]
-    ParseFailure,
-    #[fail(display = "undefined variable `{}`", _0)]
-    UndefinedVariable(String),
+    /// Failed to parse an expression.
+    #[error("failed to parse expression")]
+    ParseFailure {
+        /// The parser error.
+        #[from]
+        source: peg::error::ParseError<peg::str::LineCol>,
+    },
+    /// Reference to an undefined variable.
+    #[error("undefined variable `{}`", name)]
+    UndefinedVariable {
+        /// The name of the variable.
+        name: String,
+    },
+}
+
+impl ExpressionError {
+    fn undefined_variable<N>(name: N) -> Self
+    where
+        N: Into<String>,
+    {
+        Self::UndefinedVariable {
+            name: name.into(),
+        }
+    }
 }
 
 /// The value of an expression.
@@ -39,25 +60,23 @@ pub struct Expression {
 
 impl Expression {
     /// Parse an expression from a string.
-    pub fn parse<E>(expr: E) -> Fallible<Self>
+    pub fn parse<E>(expr: E) -> Result<Self, ExpressionError>
     where
         E: AsRef<str>,
     {
-        Ok(grammar::expression(expr.as_ref())
-            .map(|expr| {
-                Expression {
-                    expr: expr.constant_fold(),
-                }
-            })
-            .context(ExpressionError::ParseFailure)?)
+        Ok(grammar::expression(expr.as_ref()).map(|expr| {
+            Expression {
+                expr: expr.constant_fold(),
+            }
+        })?)
     }
 
     /// Evaluate the expression with a given context.
-    pub fn eval(&self, ctx: &ExpressionContext) -> Fallible<Value> {
+    pub fn eval(&self, ctx: &dyn ExpressionContext) -> Result<Value, ExpressionError> {
         Self::eval_expr(&self.expr, ctx)
     }
 
-    fn eval_expr(expr: &Expr, ctx: &ExpressionContext) -> Fallible<Value> {
+    fn eval_expr(expr: &Expr, ctx: &dyn ExpressionContext) -> Result<Value, ExpressionError> {
         match *expr {
             Expr::Unary {
                 op: ref o,
@@ -77,8 +96,8 @@ impl Expression {
                     ExprVar::Rank => Ok(ctx.rank()),
                     ExprVar::Rand => Ok(ctx.rand()),
                     ExprVar::Named(ref n) => {
-                        ctx.get(&n)
-                            .ok_or_else(|| ExpressionError::UndefinedVariable(n.clone()).into())
+                        ctx.get(n)
+                            .ok_or_else(|| ExpressionError::undefined_variable(n))
                     },
                 }
             },

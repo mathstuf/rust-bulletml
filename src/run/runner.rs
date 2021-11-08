@@ -1,12 +1,10 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::failure::Fallible;
-
-use data;
-use run::compile::*;
-use run::BulletManager;
-use run::Node;
+use crate::data;
+use crate::run::compile::*;
+use crate::run::BulletManager;
+use crate::run::Node;
 
 #[derive(Debug, Clone, Copy)]
 struct Function {
@@ -138,7 +136,7 @@ where
         init_speed: f32,
         turn: u32,
         duration: f32,
-    ) -> Fallible<Option<Function>>
+    ) -> Result<Option<Function>, data::ExpressionError>
     where
         A: Acceleration,
     {
@@ -156,7 +154,7 @@ where
             .transpose()
     }
 
-    fn run_accel(&mut self, accel: &Accel) -> Fallible<Status> {
+    fn run_accel(&mut self, accel: &Accel) -> Result<Status, data::ExpressionError> {
         let duration = accel.duration.eval(&self.manager)?.max(0.);
         let turn = self.manager.turn();
 
@@ -219,14 +217,17 @@ where
         dir % 360.
     }
 
-    fn target_direction_data(&self, direction: &Direction) -> Fallible<f32> {
+    fn target_direction_data(&self, direction: &Direction) -> Result<f32, data::ExpressionError> {
         direction
             .degrees
             .eval(&self.manager)
             .map(|degrees| self.target_direction(direction.kind, degrees))
     }
 
-    fn run_change_direction(&mut self, cd: &ChangeDirection) -> Fallible<Status> {
+    fn run_change_direction(
+        &mut self,
+        cd: &ChangeDirection,
+    ) -> Result<Status, data::ExpressionError> {
         let duration = cd.value.eval(&self.manager)?.max(0.);
         let direction = &cd.direction;
         let cur_dir = self.manager.direction();
@@ -263,14 +264,14 @@ where
         }
     }
 
-    fn target_speed_data(&self, speed: &Speed) -> Fallible<f32> {
+    fn target_speed_data(&self, speed: &Speed) -> Result<f32, data::ExpressionError> {
         speed
             .change
             .eval(&self.manager)
             .map(|change| self.target_speed(speed.kind, change))
     }
 
-    fn run_change_speed(&mut self, cs: &ChangeSpeed) -> Fallible<Status> {
+    fn run_change_speed(&mut self, cs: &ChangeSpeed) -> Result<Status, data::ExpressionError> {
         let duration = cs.value.eval(&self.manager)?.max(0.);
         let speed = &cs.speed;
         let cur_speed = self.manager.speed();
@@ -293,7 +294,7 @@ where
         Ok(Status::Continue)
     }
 
-    fn run_fire(&mut self, fire: &Fire) -> Fallible<Status> {
+    fn run_fire(&mut self, fire: &Fire) -> Result<Status, data::ExpressionError> {
         let fire_dir = fire
             .direction
             .as_ref()
@@ -329,13 +330,13 @@ where
             self.manager.new_simple(dir, speed);
         } else {
             // TODO(#4): The actions need to be handled here.
-            self.manager.new(dir, speed);
+            self.manager.new_bullet(dir, speed);
         }
 
         Ok(Status::Continue)
     }
 
-    fn run_repeat(&mut self, repeat: &Repeat) -> Fallible<Status> {
+    fn run_repeat(&mut self, repeat: &Repeat) -> Result<Status, data::ExpressionError> {
         let times = repeat.times.value.eval(&self.manager)?;
 
         // Other implementations use C++'s static_cast which truncates, so compare with `1`
@@ -354,7 +355,7 @@ where
         Status::End
     }
 
-    fn run_wait(&mut self, wait: &Wait) -> Fallible<Status> {
+    fn run_wait(&mut self, wait: &Wait) -> Result<Status, data::ExpressionError> {
         let next = if let Some(next) = self.next {
             next
         } else {
@@ -380,7 +381,7 @@ pub struct Runner<T> {
 
 impl<T> Runner<T> {
     /// Create a new runner for a manager and BulletML script.
-    pub fn new(manager: T, bulletml: data::BulletML) -> Fallible<Self> {
+    pub fn new(manager: T, bulletml: data::BulletML) -> Result<Self, BulletMLError> {
         Ok(Runner {
             state: State::new(manager, bulletml.orientation),
             bulletml: BulletML::new(bulletml)?,
@@ -393,12 +394,12 @@ where
     T: BulletManager,
 {
     /// Update the state.
-    pub fn update(&mut self) -> Fallible<bool> {
+    pub fn update(&mut self) -> Result<bool, data::ExpressionError> {
         let mut updated = self.state.update_functions();
 
         loop {
             let status = {
-                let mut node = if let Some(node) = self.bulletml.steps.current_mut() {
+                let node = if let Some(node) = self.bulletml.steps.current_mut() {
                     updated = true;
                     node
                 } else {

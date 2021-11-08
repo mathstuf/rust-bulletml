@@ -8,18 +8,18 @@
 use std::ops::{Add, Mul};
 use std::rc::Rc;
 
-use crates::failure::Fallible;
+use thiserror::Error;
 
 /// An error related to entity searches.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum EntityError {
     /// An entity with the given name could not be found.
-    #[fail(display = "could not find entity `{}`", _0)]
+    #[error("could not find entity `{}`", _0)]
     CannotFind(String),
 }
 
 mod expression;
-pub use self::expression::{Expression, ExpressionContext, Value};
+pub use self::expression::{Expression, ExpressionContext, ExpressionError, Value};
 
 /// Cause acceleration of a bullet for a given about of time.
 #[derive(Debug, Clone)]
@@ -218,11 +218,11 @@ pub trait EntityLookup<T> {
 
 impl<T> EntityRef<T> {
     /// Get a reference to the entity.
-    pub fn entity(&self, lookup: &EntityLookup<T>) -> Result<Rc<T>, EntityError> {
+    pub fn entity(&self, lookup: &dyn EntityLookup<T>) -> Result<Rc<T>, EntityError> {
         match *self {
             EntityRef::Ref(ref label) => {
                 lookup
-                    .find(&label)
+                    .find(label)
                     .ok_or_else(|| EntityError::CannotFind(label.clone()))
             },
             EntityRef::Real(ref rc) => Ok(rc.clone()),
@@ -279,7 +279,7 @@ pub struct Term {
 
 impl Term {
     /// Evaluate the term in the given context.
-    pub fn eval(&self, ctx: &ExpressionContext) -> Fallible<Value> {
+    pub fn eval(&self, ctx: &dyn ExpressionContext) -> Result<Value, ExpressionError> {
         self.value.eval(ctx)
     }
 }
