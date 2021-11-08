@@ -39,7 +39,7 @@ pub struct Accel {
 }
 
 /// Entities which may appear within an action.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Step {
     /// Cause a set of actions to be repeated a number of times.
     Repeat(Repeat),
@@ -60,7 +60,7 @@ pub enum Step {
 }
 
 /// An action that may be performed for a bullet.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Action {
     /// The name of the action.
     pub label: Option<String>,
@@ -69,7 +69,7 @@ pub struct Action {
 }
 
 /// A bullet.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Bullet {
     /// The label for the bullet.
     pub label: Option<String>,
@@ -237,7 +237,7 @@ impl<T> EntityRef<T> {
 }
 
 /// Create a new bullet.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Fire {
     /// The name of the fire action.
     pub label: Option<String>,
