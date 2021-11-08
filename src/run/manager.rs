@@ -11,7 +11,7 @@ pub trait BulletManager: ExpressionContext {
     /// Create a new, simple, bullet.
     fn new_simple(&mut self, direction: f32, speed: f32);
     /// Create a new bullet.
-    fn new(&mut self, direction: f32, speed: f32);
+    fn new_bullet(&mut self, direction: f32, speed: f32);
     /// The turn of the simulation.
     fn turn(&self) -> u32;
 

@@ -9,5 +9,5 @@ homepage = "https://github.com/mathstuf/rust-bulletml"
 edition = "2018"
 
 [dependencies]
-failure = "~0.1"
 peg = "~0.7"
+thiserror = "^1"

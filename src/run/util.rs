@@ -3,12 +3,24 @@
 
 use std::collections::hash_map::{Entry, HashMap};
 
-use failure::Fail;
+use thiserror::Error;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum EntityError {
-    #[fail(display = "duplicate {} entity `{}`", _1, _0)]
-    Duplicate(String, &'static str),
+    #[error("duplicate {} entity `{}`", kind, name)]
+    Duplicate { name: String, kind: &'static str },
+}
+
+impl EntityError {
+    fn duplicate<N>(kind: &'static str, name: N) -> Self
+    where
+        N: Into<String>,
+    {
+        Self::Duplicate {
+            kind,
+            name: name.into(),
+        }
+    }
 }
 
 pub fn try_insert<N, V, F>(
@@ -23,7 +35,7 @@ where
 {
     let entry = map.entry(name.into());
     if let Entry::Occupied(ref o) = entry {
-        return Err(EntityError::Duplicate(o.key().clone(), kind));
+        return Err(EntityError::duplicate(kind, o.key()));
     }
 
     entry.or_insert_with(f);
