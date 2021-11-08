@@ -193,9 +193,9 @@ mod test {
         let zipper = tree.zipper();
         let mut iter = zipper.iter();
         assert_eq!(iter.next(), Some(&0));
-        assert_eq!(iter.done, false);
+        assert!(!iter.done);
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.done, true);
+        assert!(iter.done);
     }
 
     #[test]
@@ -207,15 +207,15 @@ mod test {
         let zipper = tree.zipper();
         let mut iter = zipper.iter();
         assert_eq!(iter.next(), Some(&0));
-        assert_eq!(iter.done, false);
+        assert!(!iter.done);
         assert_eq!(iter.next(), Some(&1));
-        assert_eq!(iter.done, false);
+        assert!(!iter.done);
         assert_eq!(iter.next(), Some(&2));
-        assert_eq!(iter.done, false);
+        assert!(!iter.done);
         assert_eq!(iter.next(), Some(&3));
-        assert_eq!(iter.done, false);
+        assert!(!iter.done);
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.done, true);
+        assert!(iter.done);
     }
 
     #[test]
@@ -228,14 +228,14 @@ mod test {
         let zipper = tree.zipper();
         let mut iter = zipper.iter();
         assert_eq!(iter.next(), Some(&0));
-        assert_eq!(iter.done, false);
+        assert!(!iter.done);
         assert_eq!(iter.next(), Some(&1));
-        assert_eq!(iter.done, false);
+        assert!(!iter.done);
         assert_eq!(iter.next(), Some(&2));
-        assert_eq!(iter.done, false);
+        assert!(!iter.done);
         assert_eq!(iter.next(), Some(&3));
-        assert_eq!(iter.done, false);
+        assert!(!iter.done);
         assert_eq!(iter.next(), None);
-        assert_eq!(iter.done, true);
+        assert!(iter.done);
     }
 }
