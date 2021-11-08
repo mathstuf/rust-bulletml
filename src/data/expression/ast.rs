@@ -8,6 +8,7 @@ pub enum ExprVar {
     Rank,
     Rand,
     Named(String),
+    Param(usize),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

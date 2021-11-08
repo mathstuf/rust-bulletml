@@ -57,10 +57,16 @@ peg::parser! {
             = quiet!{_identifier()} / expected!("variable")
 
         rule _identifier() -> Expr
-            = "$" v:varname() { Expr::Var(v) }
+            = "$" v:paramname() { Expr::Var(v) }
+            / "$" v:varname() { Expr::Var(v) }
+
+        rule paramname() -> ExprVar
+            = n:$(['0'..='9']+) __ {
+                ExprVar::Param(n.parse().unwrap())
+            }
 
         rule varname() -> ExprVar
-            = n:$(['a'..='z' | 'A'..='Z' | '_']+) __ {
+            = n:$(['a'..='z' | 'A'..='Z' | '_'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']+) __ {
                 if n == "rank" {
                     ExprVar::Rank
                 } else if n == "rand" {
@@ -239,5 +245,11 @@ mod test {
     fn test_parse_rand_trailing() {
         let res = grammar::expression("$randvar").unwrap();
         check_variable(res, ExprVar::Named("randvar".into()));
+    }
+
+    #[test]
+    fn test_parse_number() {
+        let res = grammar::expression("$0").unwrap();
+        check_variable(res, ExprVar::Param(0));
     }
 }
