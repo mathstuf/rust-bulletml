@@ -12,8 +12,19 @@ use crate::data::expression::{Expression, ExpressionContext, ExpressionError, Va
 #[derive(Debug, Error)]
 pub enum EntityError {
     /// An entity with the given name could not be found.
-    #[error("could not find entity `{}`", _0)]
-    CannotFind(String),
+    #[error("could not find entity `{}`", label)]
+    CannotFind {
+        /// The label for the requested entity.
+        label: String,
+    },
+}
+
+impl EntityError {
+    fn cannot_find(label: String) -> Self {
+        Self::CannotFind {
+            label,
+        }
+    }
 }
 
 /// Cause acceleration of a bullet for a given about of time.
@@ -218,7 +229,7 @@ impl<T> EntityRef<T> {
             EntityRef::Ref(ref label) => {
                 lookup
                     .find(label)
-                    .ok_or_else(|| EntityError::CannotFind(label.clone()))
+                    .ok_or_else(|| EntityError::cannot_find(label.clone()))
             },
             EntityRef::Real(ref rc) => Ok(rc.clone()),
         }
