@@ -1,6 +1,8 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
+use serde::de::{Deserializer, Error, Unexpected};
+use serde::Deserialize;
 use thiserror::Error;
 
 mod ast;
@@ -120,5 +122,17 @@ impl Expression {
                 }
             },
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for Expression {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let expr = String::deserialize(deserializer)?;
+
+        Self::parse(&expr)
+            .map_err(|_| D::Error::invalid_value(Unexpected::Str(&expr), &"a BulletML expression"))
     }
 }

@@ -10,4 +10,9 @@ edition = "2018"
 
 [dependencies]
 peg = "~0.7"
+serde = { version = "^1", features = ["derive", "rc"] }
 thiserror = "^1"
+
+[dependencies.serde_with]
+git = "https://github.com/jonasbb/serde_with"
+branch = "vec-enum-map"
