@@ -1,6 +1,8 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
+use serde::de::{Deserializer, Error, Unexpected};
+use serde::Deserialize;
 use thiserror::Error;
 
 mod ast;
@@ -24,6 +26,12 @@ pub enum ExpressionError {
         /// The name of the variable.
         name: String,
     },
+    /// Reference to a missing parameter.
+    #[error("missing parameter `{}`", idx)]
+    MissingParameter {
+        /// The index
+        idx: usize,
+    },
 }
 
 impl ExpressionError {
@@ -33,6 +41,12 @@ impl ExpressionError {
     {
         Self::UndefinedVariable {
             name: name.into(),
+        }
+    }
+
+    fn missing_parameter(idx: usize) -> Self {
+        Self::MissingParameter {
+            idx,
         }
     }
 }
@@ -46,6 +60,8 @@ pub type Value = f32;
 pub trait ExpressionContext {
     /// Get the value of a variable.
     fn get(&self, name: &str) -> Option<Value>;
+    /// Get a parameter.
+    fn get_param(&self, idx: usize) -> Option<Value>;
     /// Get a random value.
     fn rand(&self) -> Value;
     /// Get the difficulty of the entity using the expression.
@@ -99,8 +115,24 @@ impl Expression {
                         ctx.get(n)
                             .ok_or_else(|| ExpressionError::undefined_variable(n))
                     },
+                    ExprVar::Param(n) => {
+                        ctx.get_param(n)
+                            .ok_or_else(|| ExpressionError::missing_parameter(n))
+                    },
                 }
             },
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for Expression {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let expr = String::deserialize(deserializer)?;
+
+        Self::parse(&expr)
+            .map_err(|_| D::Error::invalid_value(Unexpected::Str(&expr), &"a BulletML expression"))
     }
 }

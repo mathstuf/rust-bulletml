@@ -8,6 +8,15 @@ repository = "https://github.com/mathstuf/rust-bulletml"
 homepage = "https://github.com/mathstuf/rust-bulletml"
 edition = "2018"
 
+[dev-dependencies]
+walkdir = "^2"
+serde-xml-rs = "^0.5"
+
 [dependencies]
 peg = "~0.7"
+serde = { version = "^1", features = ["derive", "rc"] }
 thiserror = "^1"
+
+[dependencies.serde_with]
+git = "https://github.com/jonasbb/serde_with"
+branch = "vec-enum-map"
